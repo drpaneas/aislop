@@ -1,0 +1,47 @@
+name: aislop
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  aislop:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build
+        run: cargo build --release
+
+      - name: Run aislop (with LLM)
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          ./target/release/aislop \
+            "${{ github.event.pull_request.html_url }}" \
+            --comment --llm --llm-provider claude -v
+
+      - name: Run aislop (patterns only, no comment)
+        if: github.event.pull_request.head.repo.full_name != github.repository
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./target/release/aislop \
+            "${{ github.event.pull_request.html_url }}" \
+            -v

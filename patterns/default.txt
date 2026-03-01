@@ -1,0 +1,21 @@
+# aislop default patterns
+# One regex per line. Case-insensitive matching is automatic.
+# Lines starting with # are comments.
+
+# Git trailers from known AI coding tools
+co-authored-by:\s*.*\b(copilot|cursor|codeium|tabnine|devin|amazon.q)\b
+signed-off-by:\s*.*\b(copilot|cursor|codeium|tabnine|devin|amazon.q).*bot\b
+
+# AI tool bot accounts and noreply addresses
+copilot-swe-agent\[bot\]
+github-actions\[bot\]
+
+# Explicit AI tool mentions in commit messages
+\b(copilot|github.copilot|cursor|aider|codeium|tabnine|windsurf|devin)\b
+\b(chatgpt|openai|claude|anthropic|gemini|bard)\b
+
+# Common AI-generated declarations
+ai[- .]generated
+ai[- .]assisted
+generated.by\b.*\b(ai|copilot|llm|gpt|claude|gemini)
+written.with\b.*\b(ai|copilot|cursor|chatgpt)
