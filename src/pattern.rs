@@ -2,6 +2,9 @@ use anyhow::{bail, Context, Result};
 use regex::{Regex, RegexBuilder};
 use std::fs;
 
+const DEFAULT_PATTERNS_PATH: &str = "patterns/default.txt";
+const EMBEDDED_DEFAULT_PATTERNS: &str = include_str!("../patterns/default.txt");
+
 // A compiled pattern with its original source text and line number,
 // so error messages and reports can point back to the patterns file.
 pub struct Pattern {
@@ -23,8 +26,16 @@ pub struct Match {
 /// regex, all errors are reported together so the user can fix them
 /// in one pass.
 pub fn load_patterns(path: &str) -> Result<Vec<Pattern>> {
-    let content = fs::read_to_string(path)
-        .context(format!("could not read patterns file: {path}"))?;
+    let content = match fs::read_to_string(path) {
+        Ok(content) => content,
+        Err(e) => {
+            if e.kind() == std::io::ErrorKind::NotFound && path == DEFAULT_PATTERNS_PATH {
+                EMBEDDED_DEFAULT_PATTERNS.to_string()
+            } else {
+                return Err(e).context(format!("could not read patterns file: {path}"));
+            }
+        }
+    };
 
     let mut patterns = Vec::new();
     let mut errors = Vec::new();
